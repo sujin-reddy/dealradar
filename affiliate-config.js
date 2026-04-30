@@ -18,7 +18,7 @@ const AFFILIATE_CONFIG = {
   // Sign up: https://affiliate-program.amazon.in
   // Your ID looks like: "dealradar-21"
   amazon: {
-    india:  "",   // e.g. "dealradar-21"
+    india:  "dealradar01d-21",   // e.g. "dealradar-21"
     global: "",   // e.g. "dealradar0f-20"
   },
 
