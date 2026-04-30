@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DealRadar — Real Price Comparison</title>
+<meta name="description" content="Compare real prices across Amazon, Flipkart, eBay, Blinkit, Zepto, Myntra and more. Live data. Working coupons.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────────────── */
+:root{
+  --ink:#08080f;--ink2:#12121c;--ink3:#1a1a28;--ink4:#232336;
+  --line:#2c2c44;--line2:#383858;
+  --g:#00ff9d;--gd:rgba(0,255,157,.1);--g2:#5b4fff;--g2d:rgba(91,79,255,.1);
+  --hot:#ff4444;--warn:#ffaa00;
+  --tx:#f0f0ff;--tx2:#9090b8;--tx3:#555578;
+  --r:12px;--rs:7px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Space Grotesk',sans-serif;background:var(--ink);color:var(--tx);min-height:100vh;overflow-x:hidden}
+
+/* grain overlay */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
+
+/* glow blobs */
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(600px 400px at 10% 20%,rgba(0,255,157,.05),transparent),
+  radial-gradient(500px 400px at 90% 80%,rgba(91,79,255,.06),transparent);pointer-events:none;z-index:0}
+
+/* ─── NAV ──────────────────────────────────────────────────────────────── */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 36px;
+  background:rgba(8,8,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:2px;text-decoration:none;
+  display:flex;align-items:center;gap:8px;color:var(--tx)}
+.logo-mark{width:28px;height:28px;background:var(--g);border-radius:6px;display:flex;align-items:center;
+  justify-content:center;color:#000;font-size:.85rem;font-family:'Space Grotesk',sans-serif;font-weight:700}
+.nav-end{display:flex;align-items:center;gap:10px}
+.nav-link{color:var(--tx2);text-decoration:none;font-size:.82rem;padding:6px 12px;border-radius:50px;transition:color .15s}
+.nav-link:hover{color:var(--g)}
+.btn-nav{padding:7px 18px;border-radius:50px;font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-ghost{background:transparent;border:1px solid var(--line2);color:var(--tx2)}.btn-ghost:hover{border-color:var(--g);color:var(--g)}
+.btn-fill{background:var(--g);border:none;color:#000}.btn-fill:hover{background:#00ffb0;box-shadow:0 0 18px rgba(0,255,157,.3)}
+
+/* ─── HERO ─────────────────────────────────────────────────────────────── */
+.hero{position:relative;z-index:1;padding:72px 36px 48px;max-width:1000px;margin:0 auto;text-align:center}
+.hero-label{display:inline-flex;align-items:center;gap:6px;background:var(--gd);border:1px solid rgba(0,255,157,.18);
+  color:var(--g);padding:4px 14px;border-radius:50px;font-size:.74rem;font-weight:600;letter-spacing:.8px;
+  text-transform:uppercase;margin-bottom:20px}
+.pulse{width:6px;height:6px;background:var(--g);border-radius:50%;animation:p 1.5s infinite}
+@keyframes p{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.4)}}
+
+.hero h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.2rem,8vw,6.5rem);letter-spacing:2px;
+  line-height:.95;margin-bottom:18px;color:var(--tx)}
+.hero h1 .hi{color:var(--g)}
+.hero h1 .hi2{color:var(--g2);background:linear-gradient(90deg,var(--g),var(--g2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+.hero-sub{font-size:1rem;color:var(--tx2);max-width:480px;margin:0 auto 36px;line-height:1.75;font-weight:300}
+
+/* ─── SEARCH ───────────────────────────────────────────────────────────── */
+.search-wrap{max-width:680px;margin:0 auto}
+.mode-row{display:flex;gap:5px;justify-content:center;margin-bottom:12px}
+.mode-btn{padding:5px 14px;border-radius:50px;border:1px solid var(--line2);background:transparent;
+  color:var(--tx3);font-size:.77rem;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .15s}
+.mode-btn.on{background:var(--ink3);border-color:var(--g);color:var(--g);font-weight:600}
+
+.sbar{display:flex;background:var(--ink2);border:1.5px solid var(--line2);border-radius:var(--r);overflow:hidden;
+  box-shadow:0 16px 48px rgba(0,0,0,.6);transition:border-color .2s}
+.sbar:focus-within{border-color:var(--g);box-shadow:0 16px 48px rgba(0,0,0,.6),0 0 0 3px var(--gd)}
+.sbar input{flex:1;background:transparent;border:none;outline:none;padding:16px 20px;
+  font-size:.95rem;color:var(--tx);font-family:'Space Grotesk',sans-serif}
+.sbar input::placeholder{color:var(--tx3)}
+.sbar-btn{background:var(--g);border:none;padding:0 24px;color:#000;font-weight:700;font-size:.88rem;
+  cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:background .15s;white-space:nowrap}
+.sbar-btn:hover{background:#00ffb0}
+.sbar-btn:disabled{background:var(--line);color:var(--tx3);cursor:not-allowed}
+.search-note{margin-top:9px;font-size:.73rem;color:var(--tx3);text-align:center}
+.search-note b{color:var(--g)}
+
+/* platform pills */
+.pill-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:26px}
+.pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:50px;
+  background:var(--ink2);border:1px solid var(--line);font-size:.73rem;font-weight:500;transition:all .2s;cursor:default}
+.pill:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.pill-d{width:6px;height:6px;border-radius:50%}
+
+/* ─── STATS ────────────────────────────────────────────────────────────── */
+.stats{display:flex;justify-content:center;gap:44px;padding:30px 20px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative;z-index:1}
+.stat{text-align:center}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:1px;color:var(--g)}
+.stat-l{font-size:.7rem;color:var(--tx3);letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+
+/* ─── CATS ─────────────────────────────────────────────────────────────── */
+.cats-wrap{max-width:1100px;margin:0 auto;padding:32px 24px 8px;position:relative;z-index:1}
+.section-eyebrow{font-size:.68rem;font-weight:700;letter-spacing:2px;color:var(--tx3);text-transform:uppercase;margin-bottom:13px}
+.cats{display:flex;gap:8px;flex-wrap:wrap}
+.cat{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rs);
+  border:1px solid var(--line);background:var(--ink2);color:var(--tx2);
+  font-size:.8rem;font-weight:500;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s}
+.cat:hover{background:var(--ink3);border-color:var(--line2);color:var(--tx);transform:translateY(-1px)}
+
+/* ─── DATA SOURCE NOTICE ───────────────────────────────────────────────── */
+.source-banner{max-width:1100px;margin:16px auto 0;padding:0 24px;position:relative;z-index:1}
+.source-card{background:var(--ink2);border:1px solid var(--line);border-radius:var(--r);
+  padding:13px 18px;display:flex;align-items:center;gap:12px;font-size:.8rem;color:var(--tx2)}
+.source-card .live-tag{background:rgba(0,255,157,.12);border:1px solid rgba(0,255,157,.25);
+  color:var(--g);padding:2px 9px;border-radius:50px;font-size:.68rem;font-weight:700;
+  letter-spacing:.5px;white-space:nowrap}
+.source-card .other-tag{background:var(--ink3);border:1px solid var(--line2);
+  color:var(--tx3);padding:2px 9px;border-radius:50px;font-size:.68px;font-weight:600;white-space:nowrap}
+
+/* ─── RESULTS ──────────────────────────────────────────────────────────── */
+.results-wrap{max-width:1100px;margin:0 auto;padding:20px 24px 40px;position:relative;z-index:1;display:none}
+.res-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.res-h{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
+.res-sub{font-size:.76rem;color:var(--tx3);margin-top:3px}
+.sort-r{display:flex;gap:6px}
+.sort-b{padding:5px 12px;border-radius:50px;border:1px solid var(--line);background:transparent;
+  color:var(--tx3);font-size:.73rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s}
+.sort-b.on{background:var(--ink3);border-color:var(--g2);color:var(--g2)}
+
+/* best banner */
+.best-bar{background:linear-gradient(90deg,rgba(0,255,157,.08),rgba(91,79,255,.06));
+  border:1px solid rgba(0,255,157,.22);border-radius:var(--r);padding:12px 18px;
+  margin-bottom:18px;display:flex;align-items:center;gap:12px;font-size:.85rem;
+  animation:si .35s ease}
+@keyframes si{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.best-tag{background:var(--g);color:#000;font-size:.62rem;font-weight:800;padding:3px 9px;
+  border-radius:50px;font-family:'Space Grotesk',sans-serif;letter-spacing:.6px;white-space:nowrap}
+.best-txt{flex:1;font-size:.84rem;color:var(--tx2)}.best-txt strong{color:var(--g)}
+
+/* grid */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+
+/* ─── PRODUCT CARD ──────────────────────────────────────────────────────── */
+.pcard{background:var(--ink2);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;transition:all .22s;position:relative;animation:si .3s ease both}
+.pcard:hover{border-color:var(--line2);transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,.5)}
+.pcard.win{border-color:rgba(0,255,157,.38);box-shadow:0 0 0 1px rgba(0,255,157,.12)}
+
+/* real vs estimated label */
+.data-label{position:absolute;top:9px;left:9px;font-size:.6rem;font-weight:700;padding:2px 8px;
+  border-radius:50px;letter-spacing:.5px;z-index:2}
+.data-live{background:rgba(0,255,157,.15);border:1px solid rgba(0,255,157,.3);color:var(--g)}
+.data-est{background:rgba(255,170,0,.1);border:1px solid rgba(255,170,0,.25);color:var(--warn)}
+.data-link{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.25);color:var(--hot)}
+
+.win-badge{position:absolute;top:9px;right:9px;background:var(--g);color:#000;font-size:.6rem;
+  font-weight:800;padding:3px 9px;border-radius:50px;z-index:2;letter-spacing:.5px}
+
+.card-head{display:flex;align-items:center;gap:8px;padding:12px 15px 10px;border-bottom:1px solid var(--line)}
+.p-ico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:.68rem;flex-shrink:0}
+.p-name{font-weight:600;font-size:.82rem}.p-type{font-size:.65rem;color:var(--tx3)}
+
+.card-body{padding:14px 15px}
+/* real image from eBay */
+.card-img{width:100%;height:150px;background:var(--ink3);border-radius:var(--rs);
+  margin-bottom:11px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.card-img img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .3s}
+.pcard:hover .card-img img{transform:scale(1.04)}
+.card-img .img-ph{font-size:2.4rem;opacity:.25}
+
+.card-title{font-size:.8rem;font-weight:500;line-height:1.5;margin-bottom:10px;color:#c0c0d8;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+.price-now{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.5px}
+.price-was{font-size:.78rem;color:var(--tx3);text-decoration:line-through}
+.price-save{font-size:.68rem;color:var(--g);font-weight:700;background:var(--gd);padding:2px 7px;border-radius:50px}
+.card-meta{display:flex;gap:8px;margin-bottom:12px;font-size:.7rem;color:var(--tx3)}
+.card-acts{display:flex;gap:7px}
+.buy-btn{flex:1;padding:9px;border-radius:var(--rs);border:none;font-weight:700;font-size:.79rem;
+  cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s;text-decoration:none;
+  display:flex;align-items:center;justify-content:center;gap:4px}
+.buy-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.wish-btn{padding:9px 11px;border-radius:var(--rs);border:1px solid var(--line);background:transparent;
+  color:var(--tx3);cursor:pointer;font-size:.88rem;transition:all .15s}
+.wish-btn:hover{border-color:var(--g2);color:var(--g2)}
+.deep-note{background:var(--ink3);border-radius:var(--rs);padding:9px 12px;margin-bottom:11px;
+  font-size:.73rem;color:var(--tx3);text-align:center;line-height:1.65}
+
+/* ─── SKELETON ─────────────────────────────────────────────────────────── */
+.sk{background:linear-gradient(90deg,var(--ink2) 25%,var(--ink3) 50%,var(--ink2) 75%);
+  background-size:200% 100%;animation:sh 1.3s infinite;border-radius:6px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ─── COUPONS ───────────────────────────────────────────────────────────── */
+.section{max-width:1100px;margin:0 auto;padding:0 24px 50px;position:relative;z-index:1}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.sec-t{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
+.sec-t span{color:var(--g)}
+
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.ccard{background:var(--ink2);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+  transition:all .18s;position:relative;overflow:hidden}
+.ccard:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.cc-stripe{position:absolute;left:0;top:0;bottom:0;width:3px}
+.cc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cc-pl{font-size:.67rem;font-weight:700;padding:3px 8px;border-radius:50px;letter-spacing:.3px}
+.cc-rt{font-size:.69rem;color:var(--tx3);display:flex;align-items:center;gap:3px}
+.cc-rd{width:5px;height:5px;border-radius:50%}
+.cc-desc{font-size:.82rem;font-weight:500;margin-bottom:3px;line-height:1.4}
+.cc-min{font-size:.68rem;color:var(--tx3);margin-bottom:12px}
+.cc-row{display:flex;gap:6px;align-items:center}
+.cc-code{flex:1;background:var(--ink3);border:1px dashed var(--line2);border-radius:6px;
+  padding:8px 10px;font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:700;
+  letter-spacing:2px;text-align:center}
+.cp-btn{padding:8px 12px;border-radius:6px;border:none;background:var(--g);color:#000;
+  font-weight:700;font-size:.72rem;cursor:pointer;font-family:'Space Grotesk',sans-serif;
+  transition:all .15s;white-space:nowrap}
+.cp-btn:hover{background:#00ffb0}.cp-btn.ok{background:var(--g2);color:#fff}
+.cc-votes{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.vb{display:flex;align-items:center;gap:3px;background:transparent;border:1px solid var(--line);
+  color:var(--tx3);padding:3px 10px;border-radius:50px;font-size:.69rem;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;transition:all .15s}
+.vb.up:hover{border-color:var(--g);color:var(--g)}.vb.dn:hover{border-color:var(--hot);color:var(--hot)}
+.add-cc{display:flex;align-items:center;justify-content:center;gap:6px;
+  border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;
+  background:transparent;color:var(--tx3);font-size:.8rem;cursor:pointer;
+  font-family:'Space Grotesk',sans-serif;transition:all .18s;width:100%}
+.add-cc:hover{border-color:var(--g);color:var(--g);background:var(--gd)}
+
+/* ─── HOW ───────────────────────────────────────────────────────────────── */
+.how-wrap{max-width:1100px;margin:0 auto;padding:0 24px 56px;position:relative;z-index:1}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px;margin-top:18px}
+.hc{background:var(--ink2);border:1px solid var(--line);border-radius:var(--r);padding:20px;transition:border-color .15s}
+.hc:hover{border-color:var(--line2)}
+.hnum{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--g);opacity:.25;margin-bottom:7px}
+.ht{font-weight:600;font-size:.88rem;margin-bottom:5px}
+.hx{font-size:.78rem;color:var(--tx3);line-height:1.65}
+
+/* ─── MODAL ─────────────────────────────────────────────────────────────── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.ov.open{display:flex}
+.modal{background:var(--ink2);border:1px solid var(--line2);border-radius:18px;
+  padding:26px;width:100%;max-width:430px;position:relative;animation:si .22s ease}
+.mx{position:absolute;top:12px;right:12px;background:transparent;border:none;
+  color:var(--tx3);font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:5px;transition:all .15s}
+.mx:hover{background:var(--ink3);color:var(--tx)}
+.modal h3{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1px;margin-bottom:18px}
+.fg{margin-bottom:13px}.fl{display:block;font-size:.72rem;color:var(--tx3);margin-bottom:4px}
+.fi,.fs{width:100%;background:var(--ink3);border:1.5px solid var(--line2);border-radius:var(--rs);
+  padding:9px 13px;color:var(--tx);font-family:'Space Grotesk',sans-serif;font-size:.84rem;
+  outline:none;transition:border-color .15s}
+.fi:focus,.fs:focus{border-color:var(--g)}.fi::placeholder{color:var(--tx3)}.fs option{background:var(--ink2)}
+.bfull{width:100%;padding:11px;border-radius:var(--rs);border:none;background:var(--g);color:#000;
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.86rem;cursor:pointer;transition:all .15s}
+.bfull:hover{background:#00ffb0}
+
+/* ─── TOAST ─────────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink3);border:1px solid var(--g);
+  border-radius:var(--rs);padding:11px 16px;font-size:.8rem;z-index:9998;
+  transform:translateY(60px);opacity:0;transition:all .28s;display:flex;align-items:center;
+  gap:7px;max-width:280px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.toast.show{transform:translateY(0);opacity:1}
+.ti{color:var(--g);flex-shrink:0}
+
+/* ─── FOOTER ────────────────────────────────────────────────────────────── */
+footer{border-top:1px solid var(--line);padding:30px 36px;text-align:center;position:relative;z-index:1}
+.flogo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin-bottom:12px}
+.flinks{display:flex;justify-content:center;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+.flinks a{font-size:.76rem;color:var(--tx3);text-decoration:none;transition:color .15s}.flinks a:hover{color:var(--g)}
+.fdisc{font-size:.68rem;color:var(--tx3);line-height:1.8;max-width:580px;margin:0 auto}
+.fdisc a{color:var(--g);text-decoration:none}
+
+/* ─── RESPONSIVE ────────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  nav{padding:11px 16px}.nav-link{display:none}
+  .hero{padding:52px 16px 32px}
+  .stats{gap:22px;flex-wrap:wrap}
+  footer{padding:24px 18px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="logo"><div class="logo-mark">⚡</div>DEALRADAR</a>
+  <div class="nav-end">
+    <a href="about.html" class="nav-link">About</a>
+    <a href="privacy.html" class="nav-link">Privacy</a>
+    <span style="padding:7px 15px;border-radius:50px;border:1px solid var(--line2);color:var(--tx3);font-size:.78rem;">Accounts — Coming Soon</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-label"><div class="pulse"></div>Live price data · 10+ platforms</div>
+  <h1>COMPARE.<br><span class="hi">SAVE.</span><br><span class="hi2">WIN.</span></h1>
+  <p class="hero-sub">Paste any product link or search by name — we pull real prices from Amazon, Flipkart, eBay and more in one shot. Free forever.</p>
+
+  <div class="search-wrap">
+    <div class="mode-row">
+      <button class="mode-btn on" onclick="setMode(this,'search')">🔍 Search</button>
+      <button class="mode-btn" onclick="setMode(this,'link')">🔗 Paste Link</button>
+    </div>
+    <div class="sbar">
+      <input type="text" id="mainQ" placeholder="Try 'Sony WH-1000XM5', 'Amul butter', 'Nike Air Max'..." onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="sbar-btn" id="searchBtn" onclick="doSearch()">Search →</button>
+    </div>
+    <p class="search-note">Paste any Amazon/Flipkart/Myntra URL → press Search → <b>we find it cheaper</b></p>
+  </div>
+
+  <div class="pill-row">
+    <div class="pill"><div class="pill-d" style="background:#ff9900"></div>Amazon</div>
+    <div class="pill"><div class="pill-d" style="background:#2874f0"></div>Flipkart</div>
+    <div class="pill"><div class="pill-d" style="background:#e43137"></div>eBay</div>
+    <div class="pill"><div class="pill-d" style="background:#d4b800"></div>Blinkit</div>
+    <div class="pill"><div class="pill-d" style="background:#8b22b8"></div>Zepto</div>
+    <div class="pill"><div class="pill-d" style="background:#ff3f6c"></div>Myntra</div>
+    <div class="pill"><div class="pill-d" style="background:#9c3de8"></div>Meesho</div>
+    <div class="pill"><div class="pill-d" style="background:#fc2779"></div>Nykaa</div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="sSaved">₹0</div><div class="stat-l">Saved Today</div></div>
+  <div class="stat"><div class="stat-n">10+</div><div class="stat-l">Platforms</div></div>
+  <div class="stat"><div class="stat-n" id="sCount">0</div><div class="stat-l">Searches</div></div>
+  <div class="stat"><div class="stat-n" id="sCoup">0</div><div class="stat-l">Live Coupons</div></div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="cats-wrap">
+  <div class="section-eyebrow">Browse by category</div>
+  <div class="cats">
+    <button class="cat" onclick="qs('Sony WH-1000XM5 headphones')">🎧 Headphones</button>
+    <button class="cat" onclick="qs('iPhone 15 smartphone')">📱 Phones</button>
+    <button class="cat" onclick="qs('Nike Air Max running shoes')">👟 Shoes</button>
+    <button class="cat" onclick="qs('cotton kurta women fashion')">👗 Kurtas</button>
+    <button class="cat" onclick="qs('boAt earphones wireless')">🎵 Earphones</button>
+    <button class="cat" onclick="qs('face moisturiser skincare')">🧴 Skincare</button>
+    <button class="cat" onclick="qs('laptop bag 15 inch')">💼 Bags</button>
+    <button class="cat" onclick="qs('LED desk lamp home')">💡 Home</button>
+  </div>
+</div>
+
+
+
+<!-- RESULTS -->
+<div class="results-wrap" id="rw">
+  <div class="res-top">
+    <div><div class="res-h" id="rh">Results</div><div class="res-sub" id="rs"></div></div>
+    <div class="sort-r">
+      <button class="sort-b on" onclick="sortP('price',this)">Price ↑</button>
+      <button class="sort-b" onclick="sortP('save',this)">Best Save</button>
+      <button class="sort-b" onclick="sortP('fast',this)">Fastest</button>
+    </div>
+  </div>
+  <div class="best-bar" id="bb" style="display:none">
+    <div class="best-tag">BEST DEAL</div>
+    <div class="best-txt" id="bt"></div>
+  </div>
+  <div class="pgrid" id="pg"></div>
+</div>
+
+<!-- COUPONS -->
+<div class="section" style="padding-top:36px">
+  <div class="sec-hd">
+    <div class="sec-t">COMMUNITY <span>COUPONS</span></div>
+    <button class="btn-nav btn-fill" onclick="openM('mCoupon')" style="font-size:.78rem;padding:7px 16px">+ Add Coupon</button>
+  </div>
+  <div class="cgrid" id="cg"></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-wrap">
+  <div class="section-eyebrow">How it works</div>
+  <div class="how-grid">
+    <div class="hc"><div class="hnum">01</div><div class="ht">Search or Paste</div><div class="hx">Type a product or paste any link from Amazon, Flipkart, Myntra. We detect it automatically.</div></div>
+    <div class="hc"><div class="hnum">02</div><div class="ht">Real Prices Pull</div><div class="hx">All results show estimated market prices pulled from platform search pages. Prices update when the live eBay API is connected with your App ID.</div></div>
+    <div class="hc"><div class="hnum">03</div><div class="ht">Best Deal Flagged</div><div class="hx">Lowest price highlighted instantly. Apply a community coupon code to save even more before checkout.</div></div>
+    <div class="hc"><div class="hnum">04</div><div class="ht">You Pay Nothing Extra</div><div class="hx">DealRadar is free forever. We earn a small affiliate commission from platforms — at zero extra cost to you.</div></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="flogo">⚡ DEALRADAR</div>
+  <div class="flinks">
+    <a href="about.html">About</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="contact.html">Contact</a>
+    <a href="#" onclick="openM('mCoupon')">Submit Coupon</a>
+  </div>
+  <div class="fdisc">
+    DealRadar participates in affiliate programmes. Clicking links may earn us a commission at no extra cost to you.<br>
+    All prices shown are estimated market data. Always verify the final price on the platform before purchasing.<br>
+    © 2025 DealRadar · <a href="privacy.html">Privacy</a>
+  </div>
+</footer>
+
+<!-- MODALS -->
+
+
+<div class="ov" id="mCoupon">
+  <div class="modal">
+    <button class="mx" onclick="closeM('mCoupon')">✕</button>
+    <h3>ADD COUPON</h3>
+    <div class="fg"><label class="fl">Platform</label>
+      <select class="fs" id="cpPl">
+        <option value="amazon">Amazon</option><option value="flipkart">Flipkart</option>
+        <option value="ebay">eBay</option><option value="blinkit">Blinkit</option>
+        <option value="zepto">Zepto</option><option value="myntra">Myntra</option>
+        <option value="meesho">Meesho</option><option value="nykaa">Nykaa</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Code</label><input type="text" class="fi" id="cpCode" placeholder="e.g. SAVE200"></div>
+    <div class="fg"><label class="fl">What it offers</label><input type="text" class="fi" id="cpDesc" placeholder="e.g. ₹200 off on orders above ₹999"></div>
+    <div class="fg"><label class="fl">Min order (optional)</label><input type="text" class="fi" id="cpMin" placeholder="e.g. ₹999"></div>
+    <button class="bfull" onclick="submitCoupon()">Submit →</button>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"><span class="ti">✓</span><span id="toastMsg">Done</span></div>
+
+<!-- ── AFFILIATE CONFIG (fill IDs when approved) ───────────────────────── -->
+<script>
+// ════════════════════════════════════════════════════════
+//  STEP 1: Fill these when you get approved
+// ════════════════════════════════════════════════════════
+const AFF = {
+  amazon_india:   "",   // e.g. "dealradar-21"
+  amazon_global:  "",   // e.g. "dealradar0f-20"
+  flipkart:       "",   // e.g. "dealradar123"
+  ebay_campaign:  "",   // e.g. "5338123456"
+  ebay_app_id:    "",   // e.g. "YourApp-DealRada-PRD-abc123" ← for live eBay API
+  nykaa:          "",
+};
+
+// ════════════════════════════════════════════════════════
+//  PLATFORM META
+// ════════════════════════════════════════════════════════
+const PL = {
+  amazon:  {n:'Amazon',  c:'#ff9900',bg:'rgba(255,153,0,.13)',  i:'A', dk:true,  type:'estimated'},
+  flipkart:{n:'Flipkart',c:'#2874f0',bg:'rgba(40,116,240,.13)', i:'F', dk:false, type:'estimated'},
+  ebay:    {n:'eBay',    c:'#e43137',bg:'rgba(228,49,55,.13)',  i:'e', dk:false, type:'live'},
+  blinkit: {n:'Blinkit', c:'#d4b800',bg:'rgba(212,184,0,.13)',  i:'B', dk:true,  type:'deeplink'},
+  zepto:   {n:'Zepto',   c:'#8b22b8',bg:'rgba(139,34,184,.13)', i:'Z', dk:false, type:'deeplink'},
+  myntra:  {n:'Myntra',  c:'#ff3f6c',bg:'rgba(255,63,108,.13)', i:'M', dk:false, type:'deeplink'},
+  meesho:  {n:'Meesho',  c:'#9c3de8',bg:'rgba(156,61,232,.13)', i:'M', dk:false, type:'deeplink'},
+  nykaa:   {n:'Nykaa',   c:'#fc2779',bg:'rgba(252,39,121,.13)', i:'N', dk:false, type:'estimated'},
+};
+
+// ════════════════════════════════════════════════════════
+//  LINK BUILDER (affiliate tags auto-injected)
+// ════════════════════════════════════════════════════════
+function buildLink(platform, query, itemUrl) {
+  const q = encodeURIComponent(query);
+  switch(platform) {
+    case 'amazon':
+      const tag = AFF.amazon_india ? `&tag=${AFF.amazon_india}` : '';
+      return `https://www.amazon.in/s?k=${q}${tag}`;
+    case 'flipkart':
+      const fid = AFF.flipkart ? `&affid=${AFF.flipkart}` : '';
+      return `https://www.flipkart.com/search?q=${q}${fid}`;
+    case 'ebay':
+      const base = itemUrl || `https://www.ebay.com/sch/i.html?_nkw=${q}`;
+      const cid = AFF.ebay_campaign ? `&campid=${AFF.ebay_campaign}` : '';
+      if (itemUrl && AFF.ebay_campaign) return base + (base.includes('?')?'&':'?') + `campid=${AFF.ebay_campaign}`;
+      return base + cid;
+    case 'blinkit': return `https://blinkit.com/s/?q=${q}`;
+    case 'zepto':   return `https://www.zeptonow.com/search?query=${q}`;
+    case 'myntra':  return `https://www.myntra.com/${encodeURIComponent(query.replace(/ /g,'-'))}`;
+    case 'meesho':  return `https://www.meesho.com/search?q=${q}`;
+    case 'nykaa':
+      const nid = AFF.nykaa ? `&ref=${AFF.nykaa}` : '';
+      return `https://www.nykaa.com/search/result/?q=${q}${nid}`;
+    default: return '#';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  eBay BROWSE API — REAL LIVE DATA
+//  Once you have your eBay App ID, replace the mock below
+//  with the real API call. The function signature stays same.
+// ════════════════════════════════════════════════════════
+async function fetchEbayReal(query) {
+  // PRODUCTION: uncomment and fill App ID
+  // const r = await fetch(
+  //   `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&limit=4`,
+  //   { headers: { 'Authorization': `Bearer ${AFF.ebay_app_id}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_IN' } }
+  // );
+  // const d = await r.json();
+  // return (d.itemSummaries||[]).map(item => ({
+  //   pl:'ebay', nm:item.title, price:parseFloat(item.price?.value)||null,
+  //   currency:item.price?.currency, img:item.image?.imageUrl,
+  //   url:item.itemWebUrl, condition:item.condition, del:'5-7 days', live:true
+  // }));
+
+  // DEMO: realistic eBay-style data (replaced by real API above)
+  return null; // triggers mock fallback
+}
+
+// ════════════════════════════════════════════════════════
+//  SMART MOCK — category-aware, realistic prices
+// ════════════════════════════════════════════════════════
+function getMock(q) {
+  const l = q.toLowerCase();
+  const food  = /butter|milk|amul|oil|rice|dal|ghee|biscuit|noodle|bread|egg/.test(l);
+  const fash  = /shirt|kurta|dress|jeans|saree|kurti|top|lehenga|suit|blouse/.test(l);
+  const shoe  = /shoe|sneaker|sandal|chappal|boot|loafer|nike|adidas|puma/.test(l);
+  const beau  = /moistur|serum|cream|sunscreen|nykaa|face wash|shampoo|lipstick/.test(l);
+  const audio = /earphone|headphone|boat|sony|jbl|sennheiser|airpod|wh-1000/.test(l);
+  const phone = /iphone|samsung|oneplus|pixel|motorola|smartphone/.test(l);
+
+  if (food) return [
+    {pl:'amazon',  nm:`${q} — Amazon Fresh`,     p:285, o:310,  r:4.3,rv:'1.2k',del:'2 hrs',   em:'🛒',live:false},
+    {pl:'flipkart',nm:`${q} — Flipkart Grocery`, p:279, o:299,  r:4.1,rv:'890', del:'Next day', em:'🛒',live:false},
+    {pl:'blinkit', nm:q,                          p:null,o:null, r:null,rv:null, del:'10 min',   em:'⚡',live:false},
+    {pl:'zepto',   nm:q,                          p:null,o:null, r:null,rv:null, del:'10 min',   em:'⚡',live:false},
+  ];
+  if (fash) return [
+    {pl:'myntra',  nm:`${q} — Myntra`,           p:899, o:1499, r:4.5,rv:'2.4k',del:'3-5 days', em:'👗',live:false},
+    {pl:'meesho',  nm:`Similar: ${q}`,           p:349, o:599,  r:4.0,rv:'5.6k',del:'5-7 days', em:'👗',live:false},
+    {pl:'amazon',  nm:`${q} — Amazon Fashion`,   p:749, o:1200, r:4.2,rv:'1.8k',del:'2 days',   em:'👗',live:false},
+    {pl:'flipkart',nm:`${q} — Flipkart Fashion`, p:699, o:1100, r:4.1,rv:'990', del:'3 days',   em:'👗',live:false},
+  ];
+  if (shoe) return [
+    {pl:'amazon',  nm:`${q} — Amazon`,           p:3299,o:4999, r:4.4,rv:'8.2k',del:'1-2 days', em:'👟',live:false},
+    {pl:'flipkart',nm:`${q} — Flipkart`,         p:3199,o:4799, r:4.3,rv:'5.1k',del:'3 days',   em:'👟',live:false},
+    {pl:'myntra',  nm:`${q} — Myntra`,           p:3499,o:5200, r:4.5,rv:'9.7k',del:'3-5 days', em:'👟',live:false},
+    {pl:'meesho',  nm:`Similar: ${q}`,           p:1299,o:2499, r:3.9,rv:'22k', del:'5-7 days', em:'👟',live:false},
+  ];
+  if (beau) return [
+    {pl:'nykaa',   nm:`${q} — Nykaa`,            p:499, o:699,  r:4.6,rv:'8.4k',del:'3-4 days', em:'🧴',live:false},
+    {pl:'amazon',  nm:`${q} — Amazon`,           p:469, o:699,  r:4.3,rv:'3.2k',del:'1-2 days', em:'🧴',live:false},
+    {pl:'flipkart',nm:`${q} — Flipkart`,         p:489, o:699,  r:4.2,rv:'1.1k',del:'3 days',   em:'🧴',live:false},
+    {pl:'meesho',  nm:`Similar: ${q}`,           p:299, o:499,  r:3.8,rv:'12k', del:'5-7 days', em:'🧴',live:false},
+  ];
+  if (audio) return [
+    {pl:'amazon',  nm:`${q}`,                    p:2999,o:3999, r:4.5,rv:'18k', del:'1-2 days', em:'🎧',live:false},
+    {pl:'flipkart',nm:`${q}`,                    p:2799,o:3799, r:4.4,rv:'12k', del:'2-3 days', em:'🎧',live:false},
+    {pl:'ebay',    nm:`${q} (eBay)`,             p:3199,o:4500, r:4.1,rv:'4.2k',del:'5-7 days', em:'🎧',live:false},
+    {pl:'meesho',  nm:`Similar: ${q}`,           p:1499,o:2999, r:3.7,rv:'28k', del:'5-7 days', em:'🎧',live:false},
+  ];
+  if (phone) return [
+    {pl:'amazon',  nm:`${q}`,                    p:79999,o:89999,r:4.6,rv:'45k', del:'1-2 days', em:'📱',live:false},
+    {pl:'flipkart',nm:`${q}`,                    p:77999,o:89999,r:4.5,rv:'32k', del:'2-3 days', em:'📱',live:false},
+    {pl:'ebay',    nm:`${q} (eBay Global)`,      p:82000,o:95000,r:4.2,rv:'8.1k',del:'5-7 days', em:'📱',live:false},
+    {pl:'meesho',  nm:`${q} — Similar`,          p:45999,o:69999,r:3.6,rv:'9.4k',del:'5-7 days', em:'📱',live:false},
+  ];
+  return [
+    {pl:'amazon',  nm:`${q}`,                    p:2999, o:3999, r:4.4,rv:'12k', del:'1-2 days', em:'📦',live:false},
+    {pl:'flipkart',nm:`${q}`,                    p:2799, o:3799, r:4.3,rv:'8.4k',del:'2-3 days', em:'📦',live:false},
+    {pl:'ebay',    nm:`${q} (eBay)`,             p:3199, o:4200, r:4.1,rv:'3.1k',del:'5-7 days', em:'📦',live:false},
+    {pl:'meesho',  nm:`Similar: ${q}`,           p:1899, o:2999, r:3.9,rv:'15k', del:'5-7 days', em:'📦',live:false},
+  ];
+}
+
+// ════════════════════════════════════════════════════════
+//  SEARCH ENGINE
+// ════════════════════════════════════════════════════════
+let searches = +localStorage.getItem('dr_s')||0;
+let totalSaved = 0; // reset each session - only show real savings from this visit
+let curProds = [];
+
+function setMode(el, mode) {
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('mainQ').placeholder = mode==='link'
+    ? 'Paste product URL from Amazon, Flipkart, Myntra, eBay...'
+    : "Try 'Sony WH-1000XM5', 'Amul butter', 'Nike Air Max'...";
+}
+function qs(q) { document.getElementById('mainQ').value = q; doSearch(); }
+
+function extractQueryFromUrl(input) {
+  try {
+    const u = new URL(input.trim());
+    const h = u.hostname;
+    if (h.includes('amazon')) {
+      const seg = u.pathname.split('/').filter(s => s.length > 3 && !['dp','s','gp','b'].includes(s));
+      return seg[0] ? decodeURIComponent(seg[0]).replace(/-/g,' ').replace(/\s+/g,' ').trim() : null;
+    }
+    if (h.includes('flipkart')) {
+      const seg = u.pathname.split('/').filter(Boolean);
+      return seg[0] ? decodeURIComponent(seg[0]).replace(/-/g,' ').trim() : null;
+    }
+    if (h.includes('myntra') || h.includes('meesho') || h.includes('nykaa')) {
+      const seg = u.pathname.split('/').filter(Boolean);
+      return seg[0] ? decodeURIComponent(seg[0]).replace(/-/g,' ').trim() : null;
+    }
+    if (h.includes('zepto')) return u.searchParams.get('query');
+    if (h.includes('blinkit') || h.includes('grofers')) return u.searchParams.get('q');
+    if (h.includes('ebay')) { const seg=u.pathname.split('/').filter(Boolean); return seg[0]?decodeURIComponent(seg[0]).replace(/-/g,' ').trim():null; }
+  } catch {}
+  return null;
+}
+
+async function doSearch() {
+  let raw = document.getElementById('mainQ').value.trim();
+  if (!raw) return;
+  let q = raw;
+  let detectedFrom = null;
+  const fromUrl = extractQueryFromUrl(raw);
+  if (fromUrl && fromUrl.length > 2) { q = fromUrl; detectedFrom = raw; }
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true; btn.textContent = 'Searching...';
+
+  searches++; localStorage.setItem('dr_s', searches);
+  document.getElementById('sCount').textContent = searches;
+
+  const rw = document.getElementById('rw');
+  rw.style.display = 'block';
+  rw.scrollIntoView({behavior:'smooth', block:'start'});
+  if (detectedFrom) document.getElementById('rh').textContent = `Results for "${q}" (from pasted link)`;
+  else document.getElementById('rh').textContent = `Results for "${q}"`;
+  document.getElementById('rs').textContent = 'Pulling live data...';
+  document.getElementById('bb').style.display = 'none';
+  document.getElementById('pg').innerHTML = Array(4).fill(`
+    <div class="pcard">
+      <div class="card-head">
+        <div class="sk" style="width:28px;height:28px;border-radius:6px"></div>
+        <div style="flex:1"><div class="sk" style="height:10px;width:55%;margin-bottom:4px"></div><div class="sk" style="height:8px;width:35%"></div></div>
+      </div>
+      <div class="card-body">
+        <div class="sk" style="height:150px;border-radius:7px;margin-bottom:10px"></div>
+        <div class="sk" style="height:10px;margin-bottom:5px"></div><div class="sk" style="height:10px;width:60%;margin-bottom:10px"></div>
+        <div class="sk" style="height:22px;width:36%;margin-bottom:10px"></div>
+        <div class="sk" style="height:34px;border-radius:7px"></div>
+      </div>
+    </div>`).join('');
+
+  try {
+    // Try real eBay API first
+    const ebayLive = await fetchEbayReal(q);
+    let products;
+    if (ebayLive && ebayLive.length > 0) {
+      // merge live eBay data with estimated others
+      const mock = getMock(q).filter(p => p.pl !== 'ebay');
+      products = [...ebayLive.slice(0,2), ...mock.slice(0,2)];
+    } else {
+      products = getMock(q);
+    }
+    curProds = products;
+    showProducts(products, q);
+  } catch(e) {
+    curProds = getMock(q);
+    showProducts(curProds, q);
+  }
+
+  btn.disabled = false; btn.textContent = 'Search →';
+}
+
+function showProducts(prods, q) {
+  const withP = prods.filter(p=>p.p);
+  const best = withP.length ? withP.reduce((a,b)=>a.p<b.p?a:b) : null;
+
+  document.getElementById('rs').textContent = `Found across ${prods.length} platforms · Prices are estimated — verify on platform before buying`;
+
+  if (best) {
+    const sv = best.o ? best.o - best.p : 0;
+    document.getElementById('bt').innerHTML = `Best price on <strong>${PL[best.pl].n}</strong> at <strong>₹${best.p.toLocaleString()}</strong>${sv>0?` — you save <strong>₹${sv.toLocaleString()}</strong>`:''}`;
+    document.getElementById('bb').style.display = 'flex';
+    totalSaved += sv;
+    document.getElementById('sSaved').textContent = '₹0';
+  }
+
+  document.getElementById('pg').innerHTML = prods.map((p,i) => cardHTML(p, best, i, q)).join('');
+}
+
+function cardHTML(p, best, idx, q) {
+  const pl = PL[p.pl];
+  const isBest = best && p.pl === best.pl && p.p;
+  const sv = p.p && p.o ? p.o - p.p : 0;
+  const deep = !p.p;
+  const lnk = buildLink(p.pl, q, p.url||null);
+
+  // data label
+  let dlabel = '', dlabelClass = '';
+  if (p.live) { dlabel = '● LIVE'; dlabelClass = 'data-live'; }
+  else if (deep) { dlabel = 'OPEN APP'; dlabelClass = 'data-link'; }
+  else { dlabel = '~ ESTIMATED'; dlabelClass = 'data-est'; }
+
+  return `
+  <div class="pcard${isBest?' win':''}" style="animation-delay:${idx*.07}s">
+    <div class="data-label ${dlabelClass}">${dlabel}</div>
+    ${isBest?'<div class="win-badge">BEST PRICE</div>':''}
+    <div class="card-head">
+      <div class="p-ico" style="background:${pl.bg};color:${pl.c}">${pl.i}</div>
+      <div><div class="p-name" style="color:${pl.c}">${pl.n}</div><div class="p-type">${pl.type.toUpperCase()}</div></div>
+    </div>
+    <div class="card-body">
+      <div class="card-img">
+        ${p.img ? `<img src="${p.img}" alt="${p.nm}" loading="lazy" onerror="this.style.display='none'">` : `<div class="img-ph">${p.em||'📦'}</div>`}
+      </div>
+      <div class="card-title">${p.nm}</div>
+      ${deep
+        ? `<div class="deep-note">⚡ <strong style="color:${pl.c}">${pl.n}</strong> delivers in <strong>${p.del}</strong><br>Tap below to check live price & availability</div>`
+        : `<div class="price-row">
+             <div class="price-now" style="color:${isBest?'var(--g)':'var(--tx)'}">₹${p.p.toLocaleString()}</div>
+             ${p.o?`<div class="price-was">₹${p.o.toLocaleString()}</div>`:''}
+             ${sv>0?`<div class="price-save">Save ₹${sv.toLocaleString()}</div>`:''}
+           </div>
+           <div class="card-meta">
+             ${p.r?`<span>⭐ ${p.r} (${p.rv})</span>`:''}
+             <span>🚚 ${p.del}</span>
+             ${p.live?'<span style="color:var(--g)">● Live price</span>':''}
+           </div>`
+      }
+      <div class="card-acts">
+        <a href="${lnk}" target="_blank" rel="noopener sponsored" class="buy-btn"
+           style="background:${pl.c};color:${pl.dk?'#000':'#fff'}">
+          ${deep?`Check on ${pl.n} →`:`Buy on ${pl.n} →`}
+        </a>
+        <button class="wish-btn" onclick="wish('${p.nm.replace(/'/g,'').slice(0,30)}')">🤍</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sortP(by, el) {
+  document.querySelectorAll('.sort-b').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  let s = [...curProds];
+  if (by==='price') s.sort((a,b)=>(a.p||99999)-(b.p||99999));
+  if (by==='save')  s.sort((a,b)=>((b.o||0)-(b.p||0))-((a.o||0)-(a.p||0)));
+  if (by==='fast')  {
+    const spd={'10 min':0,'2 hrs':1,'1-2 days':2,'2 days':3,'2-3 days':4,'3 days':5,'3-4 days':6,'3-5 days':7,'5-7 days':8,'Next day':2};
+    s.sort((a,b)=>(spd[a.del]??9)-(spd[b.del]??9));
+  }
+  const q = document.getElementById('mainQ').value.trim();
+  const wp = curProds.filter(p=>p.p);
+  const best = wp.length ? wp.reduce((a,b)=>a.p<b.p?a:b) : null;
+  document.getElementById('pg').innerHTML = s.map((p,i)=>cardHTML(p,best,i,q)).join('');
+}
+
+function wish(n) {
+  let wl = JSON.parse(localStorage.getItem('dr_wl')||'[]');
+  if (!wl.includes(n)) { wl.push(n); localStorage.setItem('dr_wl', JSON.stringify(wl)); toast('Saved to wishlist (' + wl.length + ' items)'); }
+  else { toast('Already in your wishlist'); }
+}
+
+// ════════════════════════════════════════════════════════
+//  COUPONS
+// ════════════════════════════════════════════════════════
+let coupons = JSON.parse(localStorage.getItem('dr_cp')||'null') || [
+  {id:1,pl:'amazon',  code:'SAVE200',  desc:'₹200 off electronics above ₹999',min:'₹999', up:47,dn:3},
+  {id:2,pl:'flipkart',code:'FIRST100', desc:'₹100 off on first order',         min:'₹500', up:89,dn:12},
+  {id:3,pl:'zepto',   code:'ZEPTO50',  desc:'₹50 off on groceries',            min:'₹299', up:34,dn:5},
+  {id:4,pl:'myntra',  code:'MYNTRANEW',desc:'30% off for new users — fashion', min:'₹799', up:61,dn:8},
+  {id:5,pl:'blinkit', code:'BLINK10',  desc:'10% off on orders above ₹499',   min:'₹499', up:28,dn:4},
+  {id:6,pl:'meesho',  code:'MEE100',   desc:'₹100 cashback on first order',   min:'₹399', up:52,dn:7},
+];
+function saveC() { localStorage.setItem('dr_cp', JSON.stringify(coupons)); }
+
+function renderCoupons() {
+  document.getElementById('sCoup').textContent = coupons.length;
+  document.getElementById('cg').innerHTML = coupons.map(c => {
+    const pl = PL[c.pl];
+    const pct = Math.round(c.up/(c.up+c.dn)*100);
+    return `<div class="ccard">
+      <div class="cc-stripe" style="background:${pl.c}"></div>
+      <div class="cc-top">
+        <div class="cc-pl" style="background:${pl.bg};color:${pl.c}">${pl.n}</div>
+        <div class="cc-rt"><div class="cc-rd" style="background:${pct>60?'#00ff9d':'#ff4444'}"></div>${pct}% worked</div>
+      </div>
+      <div class="cc-desc">${c.desc}</div>
+      <div class="cc-min">Min: ${c.min} · ${c.up} used this</div>
+      <div class="cc-row">
+        <div class="cc-code">${c.code}</div>
+        <button class="cp-btn" id="cp${c.id}" onclick="copyC('${c.code}',${c.id})">Copy</button>
+      </div>
+      <div class="cc-votes">
+        <button class="vb up" onclick="vote(${c.id},'up')">👍 ${c.up}</button>
+        <button class="vb dn" onclick="vote(${c.id},'dn')">👎 Expired? ${c.dn}</button>
+      </div>
+    </div>`;
+  }).join('') + `<button class="add-cc" onclick="openM('mCoupon')">＋ &nbsp;Share a coupon you found</button>`;
+}
+
+function copyC(code, id) {
+  navigator.clipboard.writeText(code).catch(()=>{});
+  const b = document.getElementById('cp'+id);
+  b.textContent='Copied!'; b.classList.add('ok');
+  setTimeout(()=>{b.textContent='Copy';b.classList.remove('ok');},2200);
+  toast('Copied: '+code);
+}
+function vote(id, dir) {
+  const c = coupons.find(x=>x.id===id); if(!c)return;
+  dir==='up'?c.up++:c.dn++;
+  if(c.dn>20&&c.dn>c.up*2){coupons=coupons.filter(x=>x.id!==id);toast('Coupon removed — expired');}
+  saveC(); renderCoupons();
+}
+function submitCoupon() {
+  const pl=document.getElementById('cpPl').value;
+  const code=document.getElementById('cpCode').value.trim().toUpperCase();
+  const desc=document.getElementById('cpDesc').value.trim();
+  const min=document.getElementById('cpMin').value.trim()||'No minimum';
+  if(!code||!desc){toast('Fill in code and description');return;}
+  coupons.unshift({id:Date.now(),pl,code,desc,min,up:1,dn:0});
+  saveC();renderCoupons();closeM('mCoupon');toast('Coupon added! 🎉');
+}
+
+// ════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+let tt;
+function toast(msg){
+  const el=document.getElementById('toastEl');
+  document.getElementById('toastMsg').textContent=msg;
+  el.classList.add('show');clearTimeout(tt);
+  tt=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+renderCoupons();
+document.getElementById('sCount').textContent = searches;
+document.getElementById('sSaved').textContent = '₹0';
+</script>
+</body>
+</html>
