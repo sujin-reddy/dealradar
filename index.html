@@ -430,7 +430,7 @@ const AFF = {
   amazon_global:  "",   // e.g. "dealradar0f-20"
   flipkart:       "",   // e.g. "dealradar123"
   ebay_campaign:  "",   // e.g. "5338123456"
-  ebay_app_id:    "",   // e.g. "YourApp-DealRada-PRD-abc123" ← for live eBay API
+  ebay_app_id:    "TejaRoya-DealRada-PRD-e2ed07085-b91a48c0",   // e.g. "YourApp-DealRada-PRD-abc123" ← for live eBay API
   nykaa:          "",
 };
 
@@ -482,20 +482,16 @@ function buildLink(platform, query, itemUrl) {
 //  with the real API call. The function signature stays same.
 // ════════════════════════════════════════════════════════
 async function fetchEbayReal(query) {
-  // PRODUCTION: uncomment and fill App ID
-  // const r = await fetch(
-  //   `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&limit=4`,
-  //   { headers: { 'Authorization': `Bearer ${AFF.ebay_app_id}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_IN' } }
-  // );
-  // const d = await r.json();
-  // return (d.itemSummaries||[]).map(item => ({
-  //   pl:'ebay', nm:item.title, price:parseFloat(item.price?.value)||null,
-  //   currency:item.price?.currency, img:item.image?.imageUrl,
-  //   url:item.itemWebUrl, condition:item.condition, del:'5-7 days', live:true
-  // }));
-
-  // DEMO: realistic eBay-style data (replaced by real API above)
-  return null; // triggers mock fallback
+  const r = await fetch(
+    `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&limit=4`,
+    { headers: { 'Authorization': `Bearer ${AFF.ebay_app_id}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_IN' } }
+  );
+  const d = await r.json();
+  return (d.itemSummaries||[]).map(item => ({
+    pl:'ebay', nm:item.title, price:parseFloat(item.price?.value)||null,
+    currency:item.price?.currency, img:item.image?.imageUrl,
+    url:item.itemWebUrl, condition:item.condition, del:'5-7 days', live:true
+  }));
 }
 
 // ════════════════════════════════════════════════════════
