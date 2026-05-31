@@ -482,16 +482,13 @@ function buildLink(platform, query, itemUrl) {
 //  with the real API call. The function signature stays same.
 // ════════════════════════════════════════════════════════
 async function fetchEbayReal(query) {
-  const r = await fetch(
-    `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&limit=4`,
-    { headers: { 'Authorization': `Bearer ${AFF.ebay_app_id}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_IN' } }
-  );
-  const d = await r.json();
-  return (d.itemSummaries||[]).map(item => ({
-    pl:'ebay', nm:item.title, price:parseFloat(item.price?.value)||null,
-    currency:item.price?.currency, img:item.image?.imageUrl,
-    url:item.itemWebUrl, condition:item.condition, del:'5-7 days', live:true
-  }));
+  try {
+    const res = await fetch(`/api/ebay?query=${encodeURIComponent(query)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
 }
 
 // ════════════════════════════════════════════════════════
