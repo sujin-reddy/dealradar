@@ -510,6 +510,24 @@ function fetchAmzFlipMock(q) {
   });
 }
 
+async function fetchAmzFlipMock(q) {
+  try {
+    const [amzRes, flipRes] = await Promise.all([
+      fetch('/api/amazon?query=' + encodeURIComponent(q)),
+      fetch('/api/flipkart?query=' + encodeURIComponent(q))
+    ]);
+    
+    let amzData = [];
+    let flipData = [];
+    if (amzRes.ok) amzData = await amzRes.json();
+    if (flipRes.ok) flipData = await flipRes.json();
+    return [...amzData, ...flipData];
+  } catch (err) {
+    console.error('API error', err);
+    return [];
+  }
+}
+
 function getMock(q) {
   const l = q.toLowerCase();
   const food  = /butter|milk|amul|oil|rice|dal|ghee|biscuit|noodle|bread|egg/.test(l);
