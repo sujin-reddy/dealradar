@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (!clientId || !clientSecret) return res.status(500).json({ error: 'Missing eBay credentials' });
   try {
     const authString = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    const tokenRes = await fetch('https://api.ebay.com/identity/v1/oauth2/token', {
+    const tokenRes = await fetch('https://api.sandbox.ebay.com/identity/v1/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     }
 
     const searchRes = await fetch(
-      `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&limit=4`,
+      `https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(query)}&limit=4`,
       {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`,
